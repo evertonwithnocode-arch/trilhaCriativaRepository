@@ -3,7 +3,7 @@ import React from "react";
 
 const SubscriptionPage: React.FC = () => {
     return (
-        <div className="h-[664px]  bg-[#FFF4D9] flex flex-col items-center  py-8 ">
+        <div className="h-[664px]  bg-[#FEF2CC] flex flex-col items-center  py-8 ">
             {/* Texto superior */}
             <p className="text-[#2C2623] text-normal font-semibold leading-6  mb-8 self-start  pl-4 sm:pl-8 md:pl-[60px] lg:pl-[100px] xl:pl-[145px] ">
                 Gerencie aqui sua assinatura e informações sobre pagamentos.

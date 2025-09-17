@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Users } from "lucide-react";
 import { FormButton } from "./FormButton";
 import { PhotoUpload } from "./PhotoUpload";
 import { SelectField } from "./SelectField";
 import { FormField } from "./FormField";
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { inviteUser } from '@/services/user';
+
 
 interface TeamMember {
-    name: string;
-    role: string;
+    nome: string;
+    especialidade: string;
 }
 
 interface MemberFormData {
@@ -22,13 +26,9 @@ interface MemberFormData {
 }
 
 const TeamPage: React.FC = () => {
-    const [members, setMembers] = useState<TeamMember[]>([
-        { name: "Nome Sobrenome", role: "Especialidade" },
-        { name: "Nome Sobrenome", role: "Especialidade" },
-        { name: "Nome Sobrenome", role: "Especialidade" },
-        { name: "Nome Sobrenome", role: "Especialidade" },
-        { name: "Nome Sobrenome", role: "Especialidade" },
-    ]);
+    const { user } = useAuth();
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(false);
 
     const genderOptions = [
         { value: 'feminino', label: 'Feminino' },
@@ -46,15 +46,43 @@ const TeamPage: React.FC = () => {
     const [photoPreview, setPhotoPreview] = useState<string | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [formData, setFormData] = useState<MemberFormData>({
-        fullName: 'Maria Santos Domingues',
-        email: 'dra.mariasantos@gmail.com',
-        phone: '(84) 9 9123.4567',
-        birthDate: '12/10/2017',
-        gender: 'feminino',
-        professionalRegistry: 'CRP 01/23456',
+        fullName: '',
+        email: '',
+        phone: '',
+        birthDate: '',
+        gender: '',
+        professionalRegistry: '',
         permissions: '',
         photo: null
     });
+
+     useEffect(() => {
+    const fetchMembers = async () => {
+      if (!user) return;
+
+      setLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("usuarios")
+          .select("*")
+          .eq("id_lider_equipe", user.id) // filtra apenas membros do usuário logado
+          .neq("id", user.id); // não exibe o próprio usuário logado
+
+        if (error) throw error;
+
+        setMembers(data || []);
+        console.log("Membros da equipe:", data);
+      } catch (err: any) {
+        console.error("Erro ao buscar membros:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMembers();
+  }, [user]);
+
+  if (!user) return <p>Carregando usuário...</p>;
 
     const handleInputChange = (field: keyof MemberFormData) => (value: string) => {
         setFormData(prev => ({
@@ -80,11 +108,84 @@ const TeamPage: React.FC = () => {
         }
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Form submitted:', formData);
-        // Here you would typically send the data to your backend
+
+        if (!user) {
+            console.error('Usuário não logado');
+            return;
+        }
+
+        try {
+            // 1️⃣ Chama a Edge Function que cria o usuário no auth.users e envia convite
+            const res = await fetch('https://rgirvsrazocpqanyhtnt.supabase.co/functions/v1/invite-user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`
+                },
+                body: JSON.stringify({
+                    email: formData.email
+                })
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.error || 'Erro ao convidar usuário');
+            }
+
+            const result = await res.json();
+            const newUserId = result.userId;
+
+            console.log('Usuário criado no auth.users com id:', newUserId);
+
+            // 2️⃣ Agora cria o usuário na tabela public.usuarios
+            const { data, error } = await supabase
+                .from('usuarios')
+                .insert([
+                    {
+                        id: newUserId, // id retornado do auth.users
+                        nome: formData.fullName,
+                        email: formData.email,
+                        telefone: formData.phone,
+                        registro_profissional: formData.professionalRegistry,
+                        id_lider_equipe: user.id, // id do usuário logado
+                        // outros campos opcionais...
+                    }
+                ])
+                .select();
+
+            if (error) throw error;
+
+            console.log('Usuário criado na tabela usuarios:', data);
+
+            // Atualiza a lista de membros na UI
+            setMembers(prev => [
+                ...prev,
+                { name: formData.fullName, role: formData.professionalRegistry }
+            ]);
+
+            // Limpa o formulário
+            setShowForm(false);
+            setFormData({
+                fullName: '',
+                email: '',
+                phone: '',
+                birthDate: '',
+                gender: '',
+                professionalRegistry: '',
+                permissions: '',
+                photo: null
+            });
+            setPhotoPreview(null);
+
+        } catch (err: any) {
+            console.error('Erro ao criar usuário:', err.message);
+        }
     };
+
+
+
 
     const handleClose = () => {
         setShowForm(false);
@@ -121,9 +222,9 @@ const TeamPage: React.FC = () => {
                                     <Users className="text-yellow-600" size={24} />
                                 </div>
                                 <div className="flex items-center gap-2">
-                                    <span className="font-medium text-gray-800">{m.name}</span>
+                                    <span className="font-medium text-gray-800">{m.nome}</span>
                                     <span className="bg-[#FFF7DC] text-xs text-gray-700 px-2 py-0.5 rounded-full border border-[#E5D8A6]">
-                                        {m.role}
+                                        {m.especialidade}
                                     </span>
                                 </div>
                             </div>

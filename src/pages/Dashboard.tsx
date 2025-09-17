@@ -1,8 +1,40 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { ChevronRight, ChevronLeft } from "lucide-react";
 import { AppSidebar } from "@/components/AppSideBar";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
+
+interface UsuarioView {
+  id: string;
+  nome: string;
+  dias_restantes: number;
+}
+
 
 const Dashboard: React.FC = () => {
+ const { user } = useAuth();
+  const [perfil, setPerfil] = useState<UsuarioView | null>(null);
+
+  useEffect(() => {
+    const fetchPerfil = async () => {
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from("usuarios_view")
+        .select("id, nome, dias_restantes")
+        .eq("id", user.id)
+        .single();
+
+      if (error) {
+        console.error("Erro ao buscar dias restantes:", error);
+      } else {
+        setPerfil(data);
+      }
+    };
+
+    fetchPerfil();
+  }, [user]);
+
   return (
     <div className="flex w-full min-h-screen relative overflow-hidden bg-[#FFFCF2]">
       
@@ -39,10 +71,14 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
 
-            <button className="flex items-center justify-between w-full sm:w-[336px] h-[56px] px-4 bg-white rounded-2xl border-2 border-[#FBDEB1] font-bold shadow-sm">
+             <button className="flex items-center justify-between w-full sm:w-[336px] h-[56px] px-4 bg-white rounded-2xl border-2 border-[#FBDEB1] font-bold shadow-sm">
               <div className="flex gap-2 items-center">
                 <img src="/raio.png" alt="iniciar" className="w-6 h-6" />
-                Últimos 3 dias de teste
+                {perfil
+                  ? perfil.dias_restantes > 0
+                    ? `Faltam ${perfil.dias_restantes} dias de teste`
+                    : "Período de teste encerrado"
+                  : "Carregando..."}
               </div>
               <ChevronRight color="#f5dc81" strokeWidth={3} size={22} />
             </button>

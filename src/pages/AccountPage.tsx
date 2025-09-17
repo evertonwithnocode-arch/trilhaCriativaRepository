@@ -6,8 +6,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { useState, useEffect } from 'react';
+
+interface UserProfile {
+  id: string;
+  plano: string | null;
+}
+
 
 export function AccountPage() {
+
   return (
     <main className="w-full  min-h-screen bg-[#FFFCF2] flex">
       <AppSidebar />
