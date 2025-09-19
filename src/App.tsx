@@ -14,9 +14,9 @@ import { AccountPage } from "./pages/AccountPage";
 import { PatientDashboard } from "./pages/Pacientes";
 import PacienteDetalhes from "@/pages/PacienteDetalhes";
 import CadastroPacientes from "./pages/CadastroPacientes";
-import PricingPage from "./pages/pricingPage";
 import GaleriaDeJogos from "./pages/GaleriaDeJogos";
 import DetalhesJogos from "./pages/DetalhesJogos";
+import Assinaturas from "./pages/Assinaturas";
 import { supabase } from "@/integrations/supabase/client";
 
 const queryClient = new QueryClient();
@@ -28,13 +28,13 @@ interface UserData {
 
 // ProtectedRoute com verificação de trial expirado e plano
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-   const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [loading, setLoading] = useState(true);
   const [trialExpired, setTrialExpired] = useState(false);
   const [hasPlan, setHasPlan] = useState(false); // <-- NOVO
 
   useEffect(() => {
-    const checkTrialAndPlan = async () => {
+    const checkPlan = async () => {
       if (!user) {
         setLoading(false);
         return;
@@ -43,45 +43,35 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       try {
         const { data, error } = await supabase
           .from("usuarios")
-          .select("dataFimTeste, plano")
+          .select("plano")
           .eq("id", user.id)
           .single() as { data: UserData | null; error: any };
 
         if (error) throw error;
 
-        if (data) {
-          if (data.plano !== null) {
-            setHasPlan(true); // tem plano ativo
-            setTrialExpired(false);
-          } else if (data.dataFimTeste) {
-            const now = new Date();
-            const trialEnd = new Date(data.dataFimTeste);
-            setTrialExpired(trialEnd < now);
-            setHasPlan(false);
-          } else {
-            setTrialExpired(false);
-            setHasPlan(false);
-          }
-        } else {
-          setTrialExpired(false);
-          setHasPlan(false);
-        }
+        setHasPlan(!!data?.plano);
       } catch (err: any) {
-        console.error("Erro ao verificar trial ou plano:", err.message);
-        setTrialExpired(false);
+        console.error("Erro ao verificar plano:", err.message);
         setHasPlan(false);
       } finally {
         setLoading(false);
       }
     };
 
-    checkTrialAndPlan();
+    checkPlan();
   }, [user]);
 
   if (authLoading || loading) {
     return <div className="min-h-screen flex items-center justify-center">Carregando...</div>;
   }
 
+    if (hasPlan && location.pathname === "/assinaturas") {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (!hasPlan && location.pathname !== "/assinaturas") {
+    return <Navigate to="/assinaturas" replace />;
+  }
   if (!user) return <Navigate to="/" replace />;
 
   // Só bloqueia se o trial expirou e NÃO tiver plano
@@ -114,7 +104,7 @@ const AppRoutes = () => (
     <Route path="/pacientes" element={<ProtectedRoute><PatientDashboard /></ProtectedRoute>} />
     <Route path="/pacientes/detalhes/:id" element={<ProtectedRoute><PacienteDetalhes /></ProtectedRoute>} />
     <Route path="/pacientes/cadastro" element={<ProtectedRoute><CadastroPacientes /></ProtectedRoute>} />
-    <Route path="/planos" element={<ProtectedRoute><PricingPage /></ProtectedRoute>} />
+    <Route path="/assinaturas" element={<ProtectedRoute><Assinaturas /></ProtectedRoute>} />
     <Route path="/jogos" element={<ProtectedRoute><GaleriaDeJogos /></ProtectedRoute>} />
     <Route path="/jogos/detalhes" element={<ProtectedRoute><DetalhesJogos /></ProtectedRoute>} />
     <Route path="*" element={<NotFound />} />

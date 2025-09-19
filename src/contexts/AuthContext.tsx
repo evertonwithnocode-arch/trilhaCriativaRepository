@@ -6,6 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
+  setUserData: React.Dispatch<React.SetStateAction<User | null>>;
   signUp: (email: string, password: string) => Promise<{
     data: { user: User | null; session: Session | null };
     error: any;
@@ -133,6 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const value = {
     user,
+    setUserData: setUser,
     session,
     loading,
     signUp,

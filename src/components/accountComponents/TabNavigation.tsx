@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import PersonalInfoForm from './PersonalInfoForm';
 import TeamPage from './TeamPage';
-import SubscriptionPage from './SubscriptionPage';
+import SubscriptionPage from './pagamentosComponents/SubscriptionPage';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';

@@ -58,7 +58,8 @@ export type Database = {
           photo_url: string | null;
           plano: string | null;
           id_lider_equipe: string | null;
-          dataFimTeste: string | null; // já existente
+          dataFimTeste: string | null;
+          asaas_customer_id: string | null; // NOVO CAMPO
         };
         Insert: {
           id?: string;
@@ -73,6 +74,7 @@ export type Database = {
           plano?: string | null;
           id_lider_equipe?: string | null;
           dataFimTeste?: string | null;
+          asaas_customer_id?: string | null; // NOVO CAMPO
         };
         Update: {
           id?: string;
@@ -84,9 +86,10 @@ export type Database = {
           created_at?: string;
           updated_at?: string;
           photo_url?: string | null;
-          plano?: string | null;
+          plano: string | null;
           id_lider_equipe?: string | null;
           dataFimTeste?: string | null;
+          asaas_customer_id?: string | null; // NOVO CAMPO
         };
         Relationships: [
           {
@@ -103,6 +106,7 @@ export type Database = {
           }
         ];
       };
+
       pacientes: {
         Row: {
           id: string;

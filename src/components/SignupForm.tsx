@@ -33,67 +33,89 @@ export const SignupForm: React.FC = () => {
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  
-  if (formData.password !== formData.confirmPassword) {
-    toast.error('As senhas não coincidem');
-    return;
-  }
+    e.preventDefault();
 
-  if (!formData.acceptTerms) {
-    toast.error('Você deve aceitar os termos e condições');
-    return;
-  }
-
-  setLoading(true);
-
-  try {
-    // 1. Cria usuário no Auth
-    const { data: signUpData, error: signUpError } = await signUp(formData.email, formData.password);
-
-    if (signUpError) {
-      if (signUpError.message.includes('User already registered')) {
-        toast.error('Este email já está cadastrado');
-      } else {
-        toast.error('Erro ao criar conta: ' + signUpError.message);
-      }
-      setLoading(false);
+    if (formData.password !== formData.confirmPassword) {
+      toast.error('As senhas não coincidem');
       return;
     }
 
-    const user = signUpData.user;
-    if (!user) throw new Error('Usuário não retornado pelo Supabase');
+    if (!formData.acceptTerms) {
+      toast.error('Você deve aceitar os termos e condições');
+      return;
+    }
 
-    // 2. Cria registro na tabela public.usuarios
-    const { error: insertError } = await supabase
-      .from('usuarios')
-      .insert([
+    setLoading(true);
+
+    try {
+      // 1. Cria usuário no Auth (Supabase)
+      const { data: signUpData, error: signUpError } = await signUp(
+        formData.email,
+        formData.password
+      );
+
+      if (signUpError) {
+        if (signUpError.message.includes('User already registered')) {
+          toast.error('Este email já está cadastrado');
+        } else {
+          toast.error('Erro ao criar conta: ' + signUpError.message);
+        }
+        return;
+      }
+
+      const user = signUpData.user;
+      if (!user) throw new Error('Usuário não retornado pelo Supabase');
+
+      // 2. Cria cliente no Asaas
+      const response = await fetch("https://rgirvsrazocpqanyhtnt.supabase.co/functions/v1/createAsaasCustomer", {
+        method: "POST",
+        headers: { 'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}` },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          cpfCnpj: "24971563792",
+        }),
+      });
+
+      const asaasData = await response.json();
+
+      if (!response.ok) {
+        toast.error("Erro ao criar cliente no Asaas: " + asaasData.errors?.[0]?.description);
+        return;
+      }
+
+      console.log("Cliente Asaas criado:", asaasData);
+
+      // 3. Cria registro local no Supabase já com o ID do Asaas
+      const { error: insertError } = await supabase.from("usuarios").insert([
         {
           id: user.id,
           nome: formData.name,
-          email: formData.email,
-          especialidade: '', // pode deixar vazio ou adicionar campo no formulário
-          telefone: '',      // idem
-          registro_profissional: '' // idem
-        }
+          email: formData.email, 
+          asaas_customer_id: asaasData.id,
+          especialidade: "",
+          telefone: "",
+          registro_profissional: "",
+        },
       ]);
 
-    if (insertError) {
-      toast.error('Erro ao criar registro no banco: ' + insertError.message);
+      if (insertError) {
+        toast.error("Erro ao criar registro no banco: " + insertError.message);
+        return;
+      }
+
+      toast.success("Conta criada com sucesso! Verifique seu email para confirmar.");
+      navigate("/verify-email", { state: { email: formData.email } });
+
+    } catch (error) {
+      console.error(error);
+      toast.error("Erro inesperado ao criar conta");
+    } finally {
       setLoading(false);
-      return;
     }
+  };
 
-    toast.success('Conta criada com sucesso! Verifique seu email para confirmar.');
-    navigate('/verify-email', { state: { email: formData.email } });
-
-  } catch (error) {
-    console.error(error);
-    toast.error('Erro inesperado ao criar conta');
-  } finally {
-    setLoading(false);
-  }
-};
 
   return (
     <form
@@ -199,7 +221,7 @@ export const SignupForm: React.FC = () => {
             {formData.acceptTerms && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <svg width="12" height="9" viewBox="0 0 12 9" fill="none">
-                  <path d="M1 4.5L4.5 8L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M1 4.5L4.5 8L11 1" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </div>
             )}
