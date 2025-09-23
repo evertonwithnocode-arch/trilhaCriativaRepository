@@ -12,7 +12,7 @@ interface UsuarioView {
 
 
 const Dashboard: React.FC = () => {
- const { user } = useAuth();
+  const { user } = useAuth();
   const [perfil, setPerfil] = useState<UsuarioView | null>(null);
 
   useEffect(() => {
@@ -37,7 +37,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="flex w-full min-h-screen relative overflow-hidden bg-[#FFFCF2]">
-      
+
 
       <div className="z-0 absolute bottom-0 w-full ">
         <div className="min-w-[1000px] h-[850px]  bg-[#FEF2CC] flex justify-between items-start overflow-hidden "></div>
@@ -65,13 +65,15 @@ const Dashboard: React.FC = () => {
         <header className="pt-12 pb-20 md:pb-40">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
-              <h1 className="text-3xl md:text-4xl font-extrabold">Olá, Maria!</h1>
+              <h1 className="text-3xl md:text-4xl font-extrabold">
+                Olá, {perfil?.nome}!
+              </h1>
               <p className="text-gray-500 text-base md:text-lg mt-1">
                 Acompanhe o progresso dos seus pacientes
               </p>
             </div>
 
-             <button className="flex items-center justify-between w-full sm:w-[336px] h-[56px] px-4 bg-white rounded-2xl border-2 border-[#FBDEB1] font-bold shadow-sm">
+            <button className="flex items-center justify-between w-full sm:w-[336px] h-[56px] px-4 bg-white rounded-2xl border-2 border-[#FBDEB1] font-bold shadow-sm">
               <div className="flex gap-2 items-center">
                 <img src="/raio.png" alt="iniciar" className="w-6 h-6" />
                 {perfil

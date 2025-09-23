@@ -107,7 +107,9 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ className = "" }) 
   const tabs: Tab[] = [
     { id: 'pessoal', label: 'Pessoal' },
     // Exibe aba 'Equipe' somente se plano for 'time'
-    ...(userProfile?.plano === 'time' ? [{ id: 'equipe', label: 'Equipe' }] : []),
+    ...( ['plano time (teste)', 'plano time'].includes(userProfile?.plano ?? '')
+  ? [{ id: 'equipe', label: 'Equipe' }]
+  : []),
     { id: 'assinatura', label: 'Assinatura' },
   ];
 
@@ -144,7 +146,10 @@ export const TabNavigation: React.FC<TabNavigationProps> = ({ className = "" }) 
       {/* Conditional Rendering */}
       <div>
         {activeTab === 'pessoal' && (!trialExpired || hasPlan) && <PersonalInfoForm />}
-        {activeTab === 'equipe' && (!trialExpired || hasPlan) && userProfile?.plano === 'time' && <TeamPage />}
+       {activeTab === 'equipe' 
+  && (!trialExpired || hasPlan) 
+  && ['plano time', 'plano time (teste)'].includes(userProfile?.plano ?? '') 
+  && <TeamPage />}
         {activeTab === 'assinatura' && !userProfile?.id_lider_equipe && <SubscriptionPage />}
       </div>
     </div>

@@ -70,6 +70,12 @@ const SubscriptionPage: React.FC = () => {
                         setSubscriptionStatus(subscription.status);
                         setNextDueDate(subscription.nextDueDate);
                         setSubscriptionValue(subscription.value);
+                    } else {
+                        // não tem assinatura no Asaas → volta para tela de escolha de planos
+                        setPlano(null);
+                        setSubscriptionStatus(null);
+                        setNextDueDate(null);
+                        setSubscriptionValue(null);
                     }
                 } catch (err) {
                     console.error("Erro ao consultar assinaturas no Asaas:", err);
@@ -292,7 +298,7 @@ const SubscriptionPage: React.FC = () => {
                             <button
                                 onClick={() => handleSubscribe("Pro")}
                                 className="w-full bg-[#F7B34D] text-white font-nunito text-[18px] font-[800] py-3 px-6 rounded-xl mb-8 hover:bg-orange/90 transition-colors">
-                                Testar por 7 dias
+                                Assinar
                             </button>
 
                             <div className="space-y-4">
@@ -338,7 +344,7 @@ const SubscriptionPage: React.FC = () => {
                             <button
                                 onClick={() => handleSubscribe("Time")}
                                 className="w-full bg-[#F7B34D] text-white font-nunito text-[18px] font-[800] py-3 px-6 rounded-xl mb-8 hover:bg-orange/90 transition-colors">
-                                Testar por 7 dias
+                                Assinar
                             </button>
 
                             <div className="space-y-4">

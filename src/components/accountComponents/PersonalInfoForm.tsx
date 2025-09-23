@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { User } from 'lucide-react';
 
 interface FormData {
   id: string;
@@ -133,22 +134,9 @@ const PersonalInfoForm: React.FC<{ className?: string }> = ({ className = '' }) 
           />
         ) : (
           <div className="w-40 h-40 flex items-center justify-center bg-white rounded-[60px] max-md:w-[120px] max-md:h-[120px] max-sm:w-20 max-sm:h-20">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="gray"
-              className="w-16 h-16 max-md:w-12 max-md:h-12 max-sm:w-8 max-sm:h-8"
-            />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"
-              />
-              
-            </div>
-          )}
+            <User className="w-16 h-16 text-gray-400 max-md:w-12 max-md:h-12 max-sm:w-8 max-sm:h-8" />
+          </div>
+        )}
         <div className="flex flex-col justify-center w-full pl-[20px]">
           <h1 className="text-[#2C2623] text-[32px] font-bold leading-8 tracking-[-0.32px] max-md:text-[28px] max-md:leading-7 max-sm:text-xl max-sm:leading-6">
             {formData.fullName}
