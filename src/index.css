@@ -1,6 +1,9 @@
+@import url("https://fonts.googleapis.com/css2?family=Baloo+2:wght@400;600;700;800&display=swap");
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
@@ -99,7 +102,8 @@ All colors MUST be HSL.
     @apply border-border;
   }
 
-  body {
+    body {
     @apply bg-background text-foreground;
+    font-family: "Baloo 2", cursive, sans-serif;
   }
 }
